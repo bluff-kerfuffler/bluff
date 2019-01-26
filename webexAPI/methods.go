@@ -3,6 +3,7 @@ package webexAPI
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -81,19 +82,19 @@ type MessageResponse struct {
 	Items []Message
 }
 
-type Message struct{
-	Id string
+type Message struct {
+	Id     string
 	RoomId string
 	//RoomType enum // group/direct
-	ToPersonId string // only in direct
-	ToPersonEmail string // only in direct
-	Text string
-	Markdown string
-	Files []string
-	PersonId string
+	ToPersonId      string // only in direct
+	ToPersonEmail   string // only in direct
+	Text            string
+	Markdown        string
+	Files           []string
+	PersonId        string
 	MentionedPeople []string
 	MentionedGroups []string
-	Created string
+	Created         string
 }
 
 func (b Bot) GetMessages(roomId string, nMessages int) (*MessageResponse, error) {
@@ -110,6 +111,38 @@ func (b Bot) GetMessages(roomId string, nMessages int) (*MessageResponse, error)
 	return &mr, d.Decode(&mr)
 }
 
-func SendMessage(roomId string, text string) {
+func (b Bot) SendMessage(roomId string, text string) (*Message, error) {
+	v := map[string]interface{}{
+		"roomId": roomId,
+		"text":   text,
+	}
+	res, err := b.Post("messages", v)
+	if err != nil {
+		return nil, err
+	}
 
+	var m Message
+	d := json.NewDecoder(bytes.NewBuffer(res))
+	return &m, d.Decode(&m)
+}
+func (b Bot) SendMessageMarkdown(roomId string, markdown string) (*Message, error) {
+	v := map[string]interface{}{
+		"roomId":   roomId,
+		"markdown": markdown,
+	}
+	res, err := b.Post("messages", v)
+	if err != nil {
+		return nil, err
+	}
+
+	var m Message
+	d := json.NewDecoder(bytes.NewBuffer(res))
+	return &m, d.Decode(&m)
+}
+
+func MentionIdMarkdown(userId string, name string) string {
+	return fmt.Sprintf("<@personId:%s|%s>", userId, name)
+}
+func MentionEmailMarkdown(email string, name string) string {
+	return fmt.Sprintf("<@personEmail:%s|%s>", email, name)
 }

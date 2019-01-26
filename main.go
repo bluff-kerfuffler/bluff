@@ -28,7 +28,10 @@ func main() {
 	b := webexAPI.Bot{
 		Token: token,
 	}
+	// NOTE: getting bot api
 	//fmt.Println(b.GetMe())
+
+	// NOTE: checks room, gets recent messages, sends relevant messages based on them
 	//r, _ := b.GetRooms()
 	//for _, r := range r.Items {
 	//	//fmt.Println(r.Title)
@@ -39,12 +42,24 @@ func main() {
 	//		}
 	//		for _, m := range msgs.Items {
 	//			if len(m.MentionedPeople) > 0 {
-	//				fmt.Println(m.MentionedPeople)
+	//				fmt.Println(r.Id)
+	//				fmt.Println(m.MentionedPeople[0])
+	//
 	//			}
 	//		}
 	//	}
 	//	//spew.Dump(b.GetUser(r.CreatorId))
 	//}
+
+	// NOTE: sending to a room, mentioning a user and abusing markdown
+	//bluffRoom := "Y2lzY29zcGFyazovL3VzL1JPT00vZmM2MTdlZTAtMjE3Yy0xMWU5LTkzMWMtYjE5NzVkYmUwMjdj"
+	//michaelID := "Y2lzY29zcGFyazovL3VzL1BFT1BMRS8yY2Q0MDQzOC1mMGE1LTRlMzEtYWM5NS02ODY2YjMzOWQ0Nzg"
+	//m, err := b.SendMessageMarkdown(bluffRoom, "we mentioned "+webexAPI.MentionIdMarkdown(michaelID, "this guy.")+ "google.com is a url, **this is bold** and [this](http://example.com) was a hyperlink. ```code is pretty lit```")
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
+
 
 	// start webserver in goroutine
 	// start bot in go routine

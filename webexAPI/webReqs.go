@@ -1,12 +1,14 @@
 package webexAPI
 
 import (
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 type Bot struct {
@@ -25,7 +27,7 @@ var client = &http.Client{
 func (b Bot) Get(method string, params url.Values) ([]byte, error) {
 	req, err := http.NewRequest("GET", apiURL+method, nil)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to build get request to %v", method)
+		return nil, errors.Wrapf(err, "unable to build GET request to %v", method)
 	}
 	req.URL.RawQuery = params.Encode()
 	req.Header.Set("Authorization", "Bearer "+b.Token)
@@ -33,37 +35,48 @@ func (b Bot) Get(method string, params url.Values) ([]byte, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to execute get request to %v", method)
+		return nil, errors.Wrapf(err, "unable to execute GET request to %v", method)
 	}
 	defer resp.Body.Close()
 
 	return ioutil.ReadAll(resp.Body)
 }
 
-func (b Bot) Post(method string, params url.Values) ([]byte, error) {
-	//b := bytes.Buffer{}
-	//w := multipart.NewWriter(&b)
-	//part, err := w.CreateFormFile(fileType, filename)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//_, err = io.Copy(part, file)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//err = w.Close()
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	req, err := http.NewRequest("POST", apiURL+method, nil)
-	if err != nil {
-		logrus.WithError(err).Errorf("failed to send to %v func", method)
+func (b Bot) SpecialPost(method string, roomId string, text string) ([]byte, error) {
+	v := map[string]interface{}{
+		"roomId": roomId,
+		"text":   text,
 	}
-	req.URL.RawQuery = params.Encode()
+	byt, _ := json.Marshal(v)
+
+	req, err := http.NewRequest("POST", apiURL+method, bytes.NewBuffer(byt))
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to build POST request to %v", method)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+b.Token)
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to execute POST request to %v", method)
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
+}
+
+func (b Bot) Post(method string, params map[string]interface{}) ([]byte, error) {
+	byt, _ := json.Marshal(params)
+	req, err := http.NewRequest("POST", apiURL+method, bytes.NewBuffer(byt))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+b.Token)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
