@@ -3,8 +3,6 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-
-	"bluff/webexAPI"
 )
 
 // get your own token!
@@ -24,10 +22,12 @@ func init() {
 }
 
 func main() {
-	token = viper.GetString("token")
-	b := webexAPI.Bot{
-		Token: token,
-	}
+	// get token
+	//token = viper.GetString("token")
+	//b := webexAPI.Bot{
+	//	Token: token,
+	//}
+	
 	// NOTE: getting bot api
 	//fmt.Println(b.GetMe())
 
