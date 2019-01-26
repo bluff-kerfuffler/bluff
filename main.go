@@ -25,4 +25,8 @@ func init() {
 func main() {
 	token = viper.GetString("token")
 
+
+	// start webserver in goroutine
+	// start bot in go routine
+	// create endless while loop + signal handlers in main loop
 }
