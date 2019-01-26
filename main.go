@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"bluff/webexAPI"
 )
 
 // get your own token!
@@ -21,10 +23,28 @@ func init() {
 	logrus.Info("Using config file at:", viper.ConfigFileUsed())
 }
 
-
 func main() {
 	token = viper.GetString("token")
-
+	b := webexAPI.Bot{
+		Token: token,
+	}
+	//fmt.Println(b.GetMe())
+	//r, _ := b.GetRooms()
+	//for _, r := range r.Items {
+	//	//fmt.Println(r.Title)
+	//	if r.Title == "Bluff" {
+	//		msgs, err := b.GetMessages(r.Id, 10)
+	//		if err != nil {
+	//			fmt.Println(err)
+	//		}
+	//		for _, m := range msgs.Items {
+	//			if len(m.MentionedPeople) > 0 {
+	//				fmt.Println(m.MentionedPeople)
+	//			}
+	//		}
+	//	}
+	//	//spew.Dump(b.GetUser(r.CreatorId))
+	//}
 
 	// start webserver in goroutine
 	// start bot in go routine
