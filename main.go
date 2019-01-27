@@ -95,6 +95,8 @@ func handleIntegrate(mux *mux.Router, w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	code := parsed.Query()["code"]
+	fmt.Println(code)
+	fmt.Println(code[0])
 
 	v := url.Values{}
 	v.Set("grant_type", "authorization_code")
