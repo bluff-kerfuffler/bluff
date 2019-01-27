@@ -144,21 +144,40 @@ func (b Bot) SendMessageMarkdown(roomId string, markdown string) (*Message, erro
 	return &m, d.Decode(&m)
 }
 
+func (b Bot) SendPrivateMessage(userId string, text string) (*Message, error) {
+	v := map[string]interface{}{
+		"toPersonId": userId,
+		"text":       text,
+	}
+	res, err := b.Post("messages", v)
+	if err != nil {
+		return nil, err
+	}
+
+	var m Message
+	d := json.NewDecoder(bytes.NewBuffer(res))
+	return &m, d.Decode(&m)
+}
+
+func (b Bot) SendPrivateMessageMarkdown(userId string, markdown string) (*Message, error) {
+	v := map[string]interface{}{
+		"toPersonId": userId,
+		"markdown":   markdown,
+	}
+	res, err := b.Post("messages", v)
+	if err != nil {
+		return nil, err
+	}
+
+	var m Message
+	d := json.NewDecoder(bytes.NewBuffer(res))
+	return &m, d.Decode(&m)
+}
+
 type Webhook struct {
 	Serve     string // base url to where you listen
 	ServePath string // path you listen to
-	ServePort int    // port you listen on
 	URL       string // where you set the webhook to send to
-}
-
-func (w Webhook) GetListenUrl() string {
-	if w.Serve == "" {
-		w.Serve = "0.0.0.0"
-	}
-	if w.ServePort == 0 {
-		w.ServePort = 443
-	}
-	return fmt.Sprintf("%s:%d", w.Serve, w.ServePort)
 }
 
 type WebHookResponse struct {
@@ -189,8 +208,8 @@ func (b Bot) SetFirehoseWebhook(name string, webhook Webhook) (*WebHookResponse,
 	return &w, d.Decode(&w)
 }
 
-func (b Bot) StartWebhook(webhook Webhook) {
-	http.HandleFunc("/"+webhook.ServePath, func(w http.ResponseWriter, r *http.Request) {
+func (b Bot) AddWebhook(webhook Webhook, mux *http.ServeMux) {
+	mux.HandleFunc("/"+webhook.ServePath, func(w http.ResponseWriter, r *http.Request) {
 		d := json.NewDecoder(r.Body)
 		var web IncomingWebhookData
 		err := d.Decode(&web)
@@ -198,11 +217,15 @@ func (b Bot) StartWebhook(webhook Webhook) {
 			fmt.Println("error decoding incoming webhook data", err)
 			return
 		}
-		handleRawUpdate(&web)
-	})
+		b.handleRawUpdate(&web)
+	})}
+
+func (b Bot) StartWebhook(webhook Webhook) {
+	b.AddWebhook(webhook, http.DefaultServeMux)
+
 	go func() {
 		// todo: TLS when using certs
-		err := http.ListenAndServe(webhook.GetListenUrl(), nil)
+		err := http.ListenAndServe(":443", nil)
 		if err != nil {
 			log.Fatal(errors.WithStack(err))
 		}
