@@ -1,6 +1,6 @@
 kerfuffler.duckdns.org {
-       tls michaelgillan1997@gmail.com
-       proxy / localhost:8080 {
-               transparent
-       }
+    tls michaelgillan1997@gmail.com
+        proxy / localhost:8080 {
+            transparent
+        }
 }
