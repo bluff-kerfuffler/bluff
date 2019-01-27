@@ -9,6 +9,8 @@ func storeVerifAdd(v verify) {
 	m[v.token] = v
 }
 
-func getVerifAdd(token string) verify {
-	return m[token]
+func FindAndRemove(token string) verify {
+	result := m[token]
+	delete(m, token)
+	return result
 }

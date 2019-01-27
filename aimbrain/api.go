@@ -45,8 +45,8 @@ func (ab *AimBrain) GenerateSession(device string, height, width int, userid, sy
 }
 
 type AuthResponse struct {
-	Score      int
-	Liveliness int
+	Score      float32
+	Liveliness float32
 }
 
 func (ab *AimBrain) Authuser(session string, images ...string) (*AuthResponse, error) {
