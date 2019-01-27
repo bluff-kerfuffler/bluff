@@ -1,13 +1,12 @@
 package main
 
 import (
-	"log"
-	"time"
-
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"log"
 
 	"bluff/webexAPI"
+	"net/http"
 )
 
 // get your own token!
@@ -48,8 +47,14 @@ func main() {
 		log.Fatal("Failed to start bot due to: ", err)
 	}
 
-	// endless main loooooop
-	for {
-		time.Sleep(1 * time.Second)
-	}
+	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		_ , err := writer.Write([]byte("Callum's mum's a big fat slag"))
+		if err != nil {
+			logrus.Panic(err)
+		}
+		writer.WriteHeader(200)
+	})
+	log.Fatal(http.ListenAndServe(":8080", nil))
+
+
 }
