@@ -27,8 +27,12 @@ var ab = &aimbrain.AimBrain{
 	ApiSecret: viper.GetString("aimbrain_secret"),
 }
 
-func AuthenticateHandler(w http.ResponseWriter, r *http.Request) {
-	d := json.NewDecoder(r.Body)
+func AuthenticateHandler(writer http.ResponseWriter, request *http.Request) {
+	if (*request).Method == "OPTIONS" {
+		return
+	}
+
+	d := json.NewDecoder(request.Body)
 	var authRequest AuthRequest
 	err := d.Decode(&authRequest)
 	if err != nil {
@@ -57,11 +61,20 @@ func AuthenticateHandler(w http.ResponseWriter, r *http.Request) {
 		b.AddUserToGroup(v.User, v.Room)
 		//tell paul's stuff
 
+		writer.WriteHeader(http.StatusOK)
+		return
 	}
+
+	writer.WriteHeader(http.StatusInternalServerError)
 }
 
-func enrollHandler(w http.ResponseWriter, r *http.Request) {
-	d := json.NewDecoder(r.Body)
+func EnrollHandler(writer http.ResponseWriter, request *http.Request) {
+	if (*request).Method == "OPTIONS" {
+		return
+	}
+
+
+	d := json.NewDecoder(request.Body)
 	var enrollRequest EnrollRequest
 	err := d.Decode(&enrollRequest)
 	if err != nil {
@@ -70,6 +83,7 @@ func enrollHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionResponse, err := ab.GenerateSession("device", 0, 0, enrollRequest.UserId, "system")
+
 	if err != nil {
 		fmt.Println("error generating session", err)
 		return
@@ -81,8 +95,14 @@ func enrollHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("HERE")
+
 	if enrollResponse.ImagesCount > 0 {
 		//success
 		//TODO tell paul's stuff
+		//tell paul's stuff
+
+		writer.WriteHeader(http.StatusOK)
 	}
+	writer.WriteHeader(http.StatusInternalServerError)
 }

@@ -7,6 +7,10 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -36,60 +40,13 @@ func init() {
 }
 
 func main() {
-	// get token
+	router := mux.NewRouter()
+	botRouter := mux.NewRouter()
 
-	//// starts webserver in goroutine
-	//b.StartWebhook(webhook)
-	//// set webhook URL (happens after server start to avoid missing messages)
-	//_, err := b.SetFirehoseWebhook("allTheMessages", webhook)
-	//if err != nil {
-	//	log.Fatal("Failed to start bot due to: ", err)
-	//}
-	//
-	//// endless main loooooop
-	//for {
-	//	time.Sleep(1 * time.Second)
-	//}
+	router.HandleFunc("/authenticate/", rest.AuthenticateHandler)
+	router.HandleFunc("/enroll/", rest.EnrollHandler)
 
-	//ab := &aimbrain.AimBrain{
-	//	ApiKey:    viper.GetString("aimbrain_api"),
-	//	ApiSecret: viper.GetString("aimbrain_secret"),
-	//}
-	//sess, err := ab.GenerateSession("anoos", 640, 480, "benny", "tool")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//f, err := os.Open("michael.jpg")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//defer f.Close()
-	//// create a new buffer base on file size
-	//fInfo, err := f.Stat()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//var size int64 = fInfo.Size()
-	//buf := make([]byte, size)
-	//
-	//fReader := bufio.NewReader(f)
-	//fReader.Read(buf)
-	//
-	//imgBase64Str := base64.StdEncoding.EncodeToString(buf)
-	//
-	//_, err = ab.EnrollUser(sess.Session, imgBase64Str)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//_, err = ab.AuthUser(sess.Session, imgBase64Str)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write([]byte("Callum's mum's a big fat slag"))
 		if err != nil {
 			logrus.Panic(err)
@@ -97,15 +54,30 @@ func main() {
 		w.WriteHeader(200)
 	})
 
-	mux.HandleFunc("/authenticate", rest.AuthenticateHandler)
-	mux.HandleFunc(integrEndpoint, func(w http.ResponseWriter, r *http.Request) {
-		handleIntegrate(mux, r)
+	botRouter.HandleFunc(integrEndpoint, func(w http.ResponseWriter, r *http.Request) {
+		handleIntegrate(botRouter, r)
 	})
 
-	log.Fatal(http.Server{
-		Addr:    ":8080", // todo check this
-		Handler: mux,
-	}.ListenAndServe())
+	go func() {
+		log.Fatal(http.ListenAndServe(":8080",
+			handlers.CORS(
+				handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
+				handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}),
+				handlers.AllowedOrigins([]string{"*"}))(router)))
+	}()
+	go func() {
+		log.Fatal(http.ListenAndServeTLS(":443",
+			viper.GetString("certfile"),
+			viper.GetString("keyfile"),
+			handlers.CORS(
+				handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
+				handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}),
+				handlers.AllowedOrigins([]string{"*"}))(botRouter)))
+	}()
+
+	for {
+		time.Sleep(1 * time.Second)
+	}
 }
 
 type IntegrationsResponse struct {
@@ -115,7 +87,7 @@ type IntegrationsResponse struct {
 	RefreshTokenExpiresIn string `json:"refresh_token_expires_in"`
 }
 
-func handleIntegrate(mux *http.ServeMux, r *http.Request) {
+func handleIntegrate(mux *mux.Router, r *http.Request) {
 	code := r.URL.Query()["code"]
 
 	v := url.Values{}

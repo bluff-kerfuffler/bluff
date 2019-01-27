@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"net/url"
@@ -208,7 +209,7 @@ func (b Bot) SetFirehoseWebhook(name string, webhook Webhook) (*WebHookResponse,
 	return &w, d.Decode(&w)
 }
 
-func (b Bot) AddWebhook(webhook Webhook, mux *http.ServeMux) {
+func (b Bot) AddWebhook(webhook Webhook, mux *mux.Router) {
 	mux.HandleFunc("/"+webhook.ServePath, func(w http.ResponseWriter, r *http.Request) {
 		d := json.NewDecoder(r.Body)
 		var web IncomingWebhookData
@@ -222,7 +223,7 @@ func (b Bot) AddWebhook(webhook Webhook, mux *http.ServeMux) {
 }
 
 func (b Bot) StartWebhook(webhook Webhook) {
-	b.AddWebhook(webhook, http.DefaultServeMux)
+	b.AddWebhook(webhook, mux.NewRouter())
 
 	go func() {
 		// todo: TLS when using certs
