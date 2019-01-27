@@ -90,7 +90,11 @@ type IntegrationsResponse struct {
 }
 
 func handleIntegrate(mux *mux.Router, w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query()["code"]
+	parsed, err := url.Parse(r.URL.String())
+	if err != nil {
+		log.Fatal(err)
+	}
+	code := parsed.Query()["code"]
 
 	v := url.Values{}
 	v.Set("grant_type", "authorization_code")
