@@ -1,28 +1,30 @@
 package rest
 
 import (
-	"bluff/aimbrain"
-	"bluff/libbluff"
 	"encoding/json"
 	"fmt"
-	"github.com/spf13/viper"
 	"net/http"
+
+	"github.com/spf13/viper"
+
+	"bluff/aimbrain"
+	"bluff/libbluff"
 )
 
 type AuthRequest struct {
-	token string
-	user_id string
-	image string
+	Token  string
+	UserId string
+	Image  string
 }
 
 type EnrollRequest struct {
-	user_id string
-	image string
+	UserId string
+	Image  string
 }
 
-func InitRestAPI() {
-
-
+var ab = &aimbrain.AimBrain{
+	ApiKey:    viper.GetString("aimbrain_api"),
+	ApiSecret: viper.GetString("aimbrain_secret"),
 }
 
 func AuthenticateHandler(writer http.ResponseWriter, request *http.Request) {
@@ -31,29 +33,22 @@ func AuthenticateHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-
 	d := json.NewDecoder(request.Body)
 	var authRequest AuthRequest
 	err := d.Decode(&authRequest)
-
 	if err != nil {
 		fmt.Println("error decoding incoming authRequest", err)
 		return
 	}
 
-	ab := &aimbrain.AimBrain{
-		ApiKey:    viper.GetString("aimbrain_api"),
-		ApiSecret: viper.GetString("aimbrain_secret"),
-	}
-
-	sessionResponse, err := ab.GenerateSession("device", 1080, 1920, authRequest.user_id, "system")
+	sessionResponse, err := ab.GenerateSession("device", 1080, 1920, authRequest.UserId, "system")
 
 	if err != nil {
 		fmt.Println("error generating session", err)
 		return
 	}
 
-	authResponse, err := ab.AuthUser(sessionResponse.Session, authRequest.image)
+	authResponse, err := ab.AuthUser(sessionResponse.Session, authRequest.Image)
 
 	if err != nil {
 		fmt.Println("error authenticating user", err)
@@ -62,7 +57,7 @@ func AuthenticateHandler(writer http.ResponseWriter, request *http.Request) {
 
 	if authResponse.Score > 0.2 {
 		//success
-		libbluff.FindAndRemove(authRequest.token)
+		libbluff.FindAndRemove(authRequest.Token)
 		//tell paul's stuff
 
 		writer.WriteHeader(http.StatusOK)
@@ -82,26 +77,19 @@ func EnrollHandler(writer http.ResponseWriter, request *http.Request) {
 	d := json.NewDecoder(request.Body)
 	var enrollRequest EnrollRequest
 	err := d.Decode(&enrollRequest)
-
 	if err != nil {
 		fmt.Println("error decoding incoming enrollRequest", err)
 		return
 	}
 
-	ab := &aimbrain.AimBrain{
-		ApiKey:    viper.GetString("aimbrain_api"),
-		ApiSecret: viper.GetString("aimbrain_secret"),
-	}
-
-	sessionResponse, err := ab.GenerateSession("device", 1080, 1920, enrollRequest.user_id, "system")
+	sessionResponse, err := ab.GenerateSession("device", 0, 0, enrollRequest.UserId, "system")
 
 	if err != nil {
 		fmt.Println("error generating session", err)
 		return
 	}
 
-	enrollResponse, err := ab.EnrollUser(sessionResponse.Session, enrollRequest.image)
-
+	enrollResponse, err := ab.EnrollUser(sessionResponse.Session, enrollRequest.Image)
 	if err != nil {
 		fmt.Println("error enrolling user", err)
 		return
@@ -111,11 +99,11 @@ func EnrollHandler(writer http.ResponseWriter, request *http.Request) {
 
 	if enrollResponse.ImagesCount > 0 {
 		//success
+		//TODO tell paul's stuff
 		//tell paul's stuff
 
 		writer.WriteHeader(http.StatusOK)
 	}
-
 	writer.WriteHeader(http.StatusInternalServerError)
 }
 
