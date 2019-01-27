@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/gorilla/mux"
 
 	"github.com/pkg/errors"
 )
