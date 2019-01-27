@@ -82,7 +82,7 @@ func EnrollHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	sessionResponse, err := ab.GenerateSession("device", 0, 0, enrollRequest.UserId, "system")
+	sessionResponse, err := ab.GenerateSession("device", 1080, 1920, enrollRequest.UserId, "system")
 
 	if err != nil {
 		fmt.Println("error generating session", err)
@@ -103,6 +103,7 @@ func EnrollHandler(writer http.ResponseWriter, request *http.Request) {
 		//tell paul's stuff
 
 		writer.WriteHeader(http.StatusOK)
+		return
 	}
 	writer.WriteHeader(http.StatusInternalServerError)
 }

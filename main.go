@@ -47,7 +47,7 @@ func main() {
 	router.HandleFunc("/enroll/", rest.EnrollHandler)
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, err := w.Write([]byte("Callum's mum's a big fat slag"))
+		_, err := w.Write([]byte("Hello there"))
 		if err != nil {
 			logrus.Panic(err)
 		}
