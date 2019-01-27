@@ -88,8 +88,6 @@ func main() {
 	//	log.Fatal(err)
 	//}
 
-	rest.InitRestAPI()
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write([]byte("Callum's mum's a big fat slag"))
@@ -99,6 +97,7 @@ func main() {
 		w.WriteHeader(200)
 	})
 
+	mux.HandleFunc("/authenticate", rest.AuthenticateHandler)
 	mux.HandleFunc(integrEndpoint, func(w http.ResponseWriter, r *http.Request) {
 		handleIntegrate(mux, r)
 	})
