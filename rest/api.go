@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 
 	"bluff/aimbrain"
-	"bluff/libbluff"
+	"bluff/webexAPI"
 )
 
 type AuthRequest struct {
@@ -52,8 +52,11 @@ func AuthenticateHandler(w http.ResponseWriter, r *http.Request) {
 
 	if authResponse.Score > 0.2 {
 		//success TODO
-		libbluff.FindAndRemove(authRequest.Token)
+		v := webexAPI.FindAndRemove(authRequest.Token)
+		b := webexAPI.Bot{Token: v.BotToken}
+		b.AddUserToGroup(v.User, v.Room)
 		//tell paul's stuff
+
 	}
 }
 

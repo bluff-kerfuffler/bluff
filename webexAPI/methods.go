@@ -198,7 +198,7 @@ func (b Bot) SetFirehoseWebhook(name string, webhook Webhook) (*WebHookResponse,
 		"targetUrl": webhook.URL + "/" + webhook.ServePath,
 		"event":     "all",
 	}
-	res, err := b.Post("messages", v)
+	res, err := b.Post("webhooks", v)
 	if err != nil {
 		return nil, err
 	}
@@ -206,19 +206,6 @@ func (b Bot) SetFirehoseWebhook(name string, webhook Webhook) (*WebHookResponse,
 	var w WebHookResponse
 	d := json.NewDecoder(bytes.NewBuffer(res))
 	return &w, d.Decode(&w)
-}
-
-func (b Bot) GetRoomDetails(roomId string) (*Room, error) {
-	v := url.Values{}
-	v.Set("roomId", roomId)
-	res, err := b.Get("rooms/"+roomId, v)
-	if err != nil {
-		return nil, err
-	}
-
-	var r Room
-	d := json.NewDecoder(bytes.NewBuffer(res))
-	return &r, d.Decode(&r)
 }
 
 func (b Bot) AddWebhook(webhook Webhook, mux *http.ServeMux) {
@@ -244,4 +231,31 @@ func (b Bot) StartWebhook(webhook Webhook) {
 			log.Fatal(errors.WithStack(err))
 		}
 	}()
+}
+
+type Membership struct {
+	Id                string
+	RoomId            string
+	PersonId          string
+	PersonEmail       string
+	PersonDisplayName string
+	PersonOrgId       string
+	IsModerator       bool
+	IsMonitor         bool
+	Created           string
+}
+
+func (b Bot) AddUserToGroup(userId string, roomId string) (*Membership, error) {
+	v := map[string]interface{}{
+		"roomId":   roomId,
+		"personId": userId,
+	}
+	res, err := b.Post("memberships", v)
+	if err != nil {
+		return nil, err
+	}
+
+	var m Membership
+	d := json.NewDecoder(bytes.NewBuffer(res))
+	return &m, d.Decode(&m)
 }
