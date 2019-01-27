@@ -90,7 +90,7 @@ type IntegrationsResponse struct {
 func handleIntegrate(mux *mux.Router, w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query()["code"]
 
-	v := map[string]interface{}{}
+	v := make(map[string]interface{})
 	v["grant_type"] = "authorization_code"
 	v["client_id"] = viper.GetString("client_id")
 	v["client_secret"] = viper.GetString("client_secret")
