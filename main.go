@@ -102,7 +102,8 @@ func handleIntegrate(mux *mux.Router, w http.ResponseWriter, r *http.Request) {
 	v.Set("grant_type", "authorization_code")
 	v.Set("client_id", viper.GetString("client_id"))
 	v.Set("client_secret", viper.GetString("client_secret"))
-	v.Set("code", code[0])
+	codeL, _ := json.Marshal(code)
+	v.Set("code", string(codeL))
 	v.Set("redirection_uri", redirURL)
 	req, err := http.NewRequest("POST", accTokURL, nil)
 	if err != nil {
