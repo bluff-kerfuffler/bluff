@@ -1,6 +1,6 @@
 package libbluff
 
-var m  map[string]verify
+var m map[string]verify
 
 func storeVerifAdd(v verify) {
 	if m == nil {

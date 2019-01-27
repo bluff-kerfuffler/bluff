@@ -38,7 +38,7 @@ func main() {
 		Serve:     "0.0.0.0", // localhost so we can grab caddy later
 		ServePort: 443,       // HTTPS ftw
 		ServePath: b.Token,   // serve on token path so people cant send garbage shit over
-		URL:       url,		  // where we set the hook to
+		URL:       url,       // where we set the hook to
 	}
 	// starts webserver in goroutine
 	b.StartWebhook(webhook)
