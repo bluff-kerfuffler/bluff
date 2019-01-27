@@ -47,7 +47,7 @@ func authenticateHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	authResponse, err := ab.Authuser(sessionResponse.Session, authRequest.image)
+	authResponse, err := ab.AuthUser(sessionResponse.Session, authRequest.image)
 
 	if err != nil {
 		fmt.Println("error authenticating user", err)
