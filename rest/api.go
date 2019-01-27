@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/spf13/viper"
-
 	"bluff/aimbrain"
 	"bluff/webexAPI"
 )
@@ -23,8 +21,8 @@ type EnrollRequest struct {
 }
 
 var ab = &aimbrain.AimBrain{
-	ApiKey:    viper.GetString("aimbrain_api"),
-	ApiSecret: viper.GetString("aimbrain_secret"),
+	ApiKey:    "29354390-b54f-4fe3-ab92-4558ad2114b5",
+	ApiSecret: "Y0j9/DRy3R8c+sI4EyEI6fHYajNpAok9SoRFzj4L+hAD0JNcCkcZ25Ab93bWpi4JMACUpRgQRe2FhctEGFWeVQ==",
 }
 
 func AuthenticateHandler(writer http.ResponseWriter, request *http.Request) {
