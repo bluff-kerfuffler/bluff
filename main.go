@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -92,19 +92,19 @@ type IntegrationsResponse struct {
 func handleIntegrate(mux *mux.Router, w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query()["code"]
 
-	v := make(map[string]interface{})
-	v["grant_type"] = "authorization_code"
-	v["client_id"] = viper.GetString("client_id")
-	v["client_secret"] = viper.GetString("client_secret")
-	v["code"] = code[0]
-	v["redirection_uri"] = redirURL
-	byt, _ := json.Marshal(v)
-	req, err := http.NewRequest("POST", accTokURL, bytes.NewBuffer(byt))
+	v := url.Values{}
+	v.Set("grant_type", "authorization_code")
+	v.Set("client_id", viper.GetString("client_id"))
+	v.Set("client_secret", viper.GetString("client_secret"))
+	v.Set("code", code[0])
+	v.Set("redirection_uri", redirURL)
+	req, err := http.NewRequest("POST", accTokURL, nil)
 	if err != nil {
 		fmt.Println("failed to post for integration linking", err)
 		return
 	}
 
+	req.URL.RawQuery = v.Encode()
 	req.Header.Set("Accept", "application/x-www-form-urlencoded")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
