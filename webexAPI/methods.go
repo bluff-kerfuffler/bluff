@@ -4,8 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 type User struct {
@@ -140,9 +144,67 @@ func (b Bot) SendMessageMarkdown(roomId string, markdown string) (*Message, erro
 	return &m, d.Decode(&m)
 }
 
-func MentionIdMarkdown(userId string, name string) string {
-	return fmt.Sprintf("<@personId:%s|%s>", userId, name)
+type Webhook struct {
+	Serve     string // base url to where you listen
+	ServePath string // path you listen to
+	ServePort int    // port you listen on
+	URL       string // where you set the webhook to send to
 }
-func MentionEmailMarkdown(email string, name string) string {
-	return fmt.Sprintf("<@personEmail:%s|%s>", email, name)
+
+func (w Webhook) GetListenUrl() string {
+	if w.Serve == "" {
+		w.Serve = "0.0.0.0"
+	}
+	if w.ServePort == 0 {
+		w.ServePort = 443
+	}
+	return fmt.Sprintf("%s:%d", w.Serve, w.ServePort)
+}
+
+type WebHookResponse struct {
+	Id        string
+	Name      string
+	TargetUrl string
+	Resource  string
+	Event     string
+	Filter    string
+	Secret    string
+	Status    string
+	Created   string
+}
+
+func (b Bot) SetFirehoseWebhook(name string, webhook Webhook) (*WebHookResponse, error) {
+	v := map[string]interface{}{
+		"name":      name,
+		"targetUrl": webhook.URL + "/" + webhook.ServePath,
+		"event":     "all",
+	}
+	res, err := b.Post("messages", v)
+	if err != nil {
+		return nil, err
+	}
+
+	var w WebHookResponse
+	d := json.NewDecoder(bytes.NewBuffer(res))
+	return &w, d.Decode(&w)
+}
+
+func (b Bot) StartWebhook(webhook Webhook) {
+	http.HandleFunc("/"+webhook.ServePath, func(w http.ResponseWriter, r *http.Request) {
+		d := json.NewDecoder(r.Body)
+		var web IncomingWebhookData
+		err := d.Decode(&web)
+		if err != nil {
+			fmt.Println("error decoding incoming webhook data", err)
+			return
+		}
+		handleRawUpdate(&web)
+	})
+	go func() {
+		// todo: TLS when using certs
+		err := http.ListenAndServe(webhook.GetListenUrl(), nil)
+		if err != nil {
+			log.Fatal(errors.WithStack(err))
+		}
+	}()
 }

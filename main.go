@@ -1,8 +1,13 @@
 package main
 
 import (
+	"log"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"bluff/webexAPI"
 )
 
 // get your own token!
@@ -23,45 +28,28 @@ func init() {
 
 func main() {
 	// get token
-	//token = viper.GetString("token")
-	//b := webexAPI.Bot{
-	//	Token: token,
-	//}
-	
-	// NOTE: getting bot api
-	//fmt.Println(b.GetMe())
+	token = viper.GetString("token")
+	url := viper.GetString("url")
+	b := webexAPI.Bot{
+		Token: token,
+	}
 
-	// NOTE: checks room, gets recent messages, sends relevant messages based on them
-	//r, _ := b.GetRooms()
-	//for _, r := range r.Items {
-	//	//fmt.Println(r.Title)
-	//	if r.Title == "Bluff" {
-	//		msgs, err := b.GetMessages(r.Id, 10)
-	//		if err != nil {
-	//			fmt.Println(err)
-	//		}
-	//		for _, m := range msgs.Items {
-	//			if len(m.MentionedPeople) > 0 {
-	//				fmt.Println(r.Id)
-	//				fmt.Println(m.MentionedPeople[0])
-	//
-	//			}
-	//		}
-	//	}
-	//	//spew.Dump(b.GetUser(r.CreatorId))
-	//}
+	webhook := webexAPI.Webhook{
+		Serve:     "0.0.0.0", // localhost so we can grab caddy later
+		ServePort: 443,       // HTTPS ftw
+		ServePath: b.Token,   // serve on token path so people cant send garbage shit over
+		URL:       url,		  // where we set the hook to
+	}
+	// starts webserver in goroutine
+	b.StartWebhook(webhook)
+	// set webhook URL (happens after server start to avoid missing messages)
+	_, err := b.SetFirehoseWebhook("allTheMessages", webhook)
+	if err != nil {
+		log.Fatal("Failed to start bot due to: ", err)
+	}
 
-	// NOTE: sending to a room, mentioning a user and abusing markdown
-	//bluffRoom := "Y2lzY29zcGFyazovL3VzL1JPT00vZmM2MTdlZTAtMjE3Yy0xMWU5LTkzMWMtYjE5NzVkYmUwMjdj"
-	//michaelID := "Y2lzY29zcGFyazovL3VzL1BFT1BMRS8yY2Q0MDQzOC1mMGE1LTRlMzEtYWM5NS02ODY2YjMzOWQ0Nzg"
-	//m, err := b.SendMessageMarkdown(bluffRoom, "we mentioned "+webexAPI.MentionIdMarkdown(michaelID, "this guy.")+ "google.com is a url, **this is bold** and [this](http://example.com) was a hyperlink. ```code is pretty lit```")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-
-
-	// start webserver in goroutine
-	// start bot in go routine
-	// create endless while loop + signal handlers in main loop
+	// endless main loooooop
+	for {
+		time.Sleep(1 * time.Second)
+	}
 }
