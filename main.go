@@ -1,12 +1,8 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -90,58 +86,58 @@ type IntegrationsResponse struct {
 }
 
 func handleIntegrate(mux *mux.Router, w http.ResponseWriter, r *http.Request) {
-	parsed, err := url.Parse(r.URL.String())
-	if err != nil {
-		log.Fatal(err)
-	}
-	code := parsed.Query()["code"]
-	fmt.Println(code)
-	fmt.Println(code[0])
+	//parsed, err := url.Parse(r.URL.String())
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
-	v := url.Values{}
-	v.Set("grant_type", "authorization_code")
-	v.Set("client_id", viper.GetString("client_id"))
-	v.Set("client_secret", viper.GetString("client_secret"))
-	codeL, _ := json.Marshal(code)
-	v.Set("code", string(codeL))
-	v.Set("redirection_uri", redirURL)
-	req, err := http.NewRequest("POST", accTokURL, nil)
-	if err != nil {
-		fmt.Println("failed to post for integration linking", err)
-		return
-	}
+	//code := parsed.Query()["code"]
+	//fmt.Println(code)
+	//fmt.Println(code[0])
+	//
+	//v := url.Values{}
+	//v.Set("grant_type", "authorization_code")
+	//v.Set("client_id", viper.GetString("client_id"))
+	//v.Set("client_secret", viper.GetString("client_secret"))
+	//v.Set("code", code[0])
+	//v.Set("redirection_uri", redirURL)
+	//req, err := http.NewRequest("POST", accTokURL, nil)
+	//if err != nil {
+	//	fmt.Println("failed to post for integration linking", err)
+	//	return
+	//}
+	//
+	//req.URL.RawQuery = v.Encode()
+	//req.Header.Set("Accept", "application/x-www-form-urlencoded")
+	//req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	//
+	//resp, err := http.DefaultClient.Do(req)
+	//if err != nil {
+	//	fmt.Println("failed to post for integration linking", err)
+	//	return
+	//}
+	//if resp.StatusCode != 200 {
+	//	fmt.Println("unexpected status code for integration linking: ", resp.StatusCode)
+	//	d, _ := ioutil.ReadAll(resp.Body)
+	//	fmt.Println("error is ", d)
+	//	return
+	//}
+	//fmt.Println("worked all good")
+	//
+	//defer resp.Body.Close()
 
-	req.URL.RawQuery = v.Encode()
-	req.Header.Set("Accept", "application/x-www-form-urlencoded")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Println("failed to post for integration linking", err)
-		return
-	}
-	if resp.StatusCode != 200 {
-		fmt.Println("unexpected status code for integration linking: ", resp.StatusCode)
-		d, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println("error is ", d)
-		return
-	}
-	fmt.Println("worked all good")
-
-	defer resp.Body.Close()
-
-	var ir IntegrationsResponse
+/*	var ir IntegrationsResponse
 	d := json.NewDecoder(resp.Body)
 	err = d.Decode(&ir)
 	if err != nil {
 		fmt.Println("failed to decode json for integration linking", err)
 		return
-	}
+	}*/
 
 	// TODO: Actually keep track of the shitty refresh tokens and add the fucking refresh logic. its a hackathon, yolo
 	// NOTE: adding new bots here
 	b := webexAPI.Bot{
-		Token: ir.AccessToken,
+		Token: viper.GetString("token"),
 	}
 
 	webhook := webexAPI.Webhook{
@@ -149,5 +145,5 @@ func handleIntegrate(mux *mux.Router, w http.ResponseWriter, r *http.Request) {
 		URL:       viper.GetString("url"), // where we set the hook to
 	}
 	b.AddWebhook(webhook, mux)
-	w.Write([]byte("fuck yes"))
+	w.Write([]byte("integration complete"))
 }
