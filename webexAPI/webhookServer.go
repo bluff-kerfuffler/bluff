@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"bluff/libbluff"
 )
 
 type IncomingWebhookData struct {
@@ -41,12 +43,16 @@ func (b Bot) handleMessageUpdate(data *IncomingWebhookData, message *Message) {
 	// TODO: proper dispatcher handler instead of bs string comparisons
 	switch strings.ToLower(words[0]) {
 	case "/secadd":
-		b.secureAddition(data.ActorId, message.MentionedPeople...)
+		r, _ := b.GetRoomDetails(message.RoomId)
+		b.secureAddition(data.ActorId, r.TeamId, message.MentionedPeople...)
 	}
 }
 
-func (b Bot) secureAddition(requester string, people ...string) {
+func (b Bot) secureAddition(requester string, team string, people ...string) {
 	for _, p := range people {
-		b.SendPrivateMessageMarkdown(p, MentionIdMarkdown(requester, "This person") + " has invited you to join a secure team.\n\nClick here to join: (how do I get this link)")
+		url := libbluff.GetVerifAddURL(p, team)
+		b.SendPrivateMessageMarkdown(p,
+			fmt.Sprintf("%s has invited you to join a secure team.\n\nClick [here](%s) to join.",
+				MentionIdMarkdown(requester, "This person"), url))
 	}
 }

@@ -51,7 +51,7 @@ func AuthenticateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if authResponse.Score > 0.2 {
-		//success
+		//success TODO
 		libbluff.FindAndRemove(authRequest.Token)
 		//tell paul's stuff
 	}

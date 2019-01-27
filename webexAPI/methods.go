@@ -208,6 +208,19 @@ func (b Bot) SetFirehoseWebhook(name string, webhook Webhook) (*WebHookResponse,
 	return &w, d.Decode(&w)
 }
 
+func (b Bot) GetRoomDetails(roomId string) (*Room, error) {
+	v := url.Values{}
+	v.Set("roomId", roomId)
+	res, err := b.Get("rooms/"+roomId, v)
+	if err != nil {
+		return nil, err
+	}
+
+	var r Room
+	d := json.NewDecoder(bytes.NewBuffer(res))
+	return &r, d.Decode(&r)
+}
+
 func (b Bot) AddWebhook(webhook Webhook, mux *http.ServeMux) {
 	mux.HandleFunc("/"+webhook.ServePath, func(w http.ResponseWriter, r *http.Request) {
 		d := json.NewDecoder(r.Body)
@@ -218,7 +231,8 @@ func (b Bot) AddWebhook(webhook Webhook, mux *http.ServeMux) {
 			return
 		}
 		b.handleRawUpdate(&web)
-	})}
+	})
+}
 
 func (b Bot) StartWebhook(webhook Webhook) {
 	b.AddWebhook(webhook, http.DefaultServeMux)
