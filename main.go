@@ -59,7 +59,9 @@ func main() {
 	})
 
 	go func() {
-		log.Fatal(http.ListenAndServe(":8080",
+		log.Fatal(http.ListenAndServeTLS(":8080",
+			viper.GetString("certfile"),
+			viper.GetString("keyfile"),
 			handlers.CORS(
 				handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
 				handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}),
