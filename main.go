@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"net/url"
 
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-
 	"bluff/rest"
 	"bluff/webexAPI"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // get your own token!
@@ -88,10 +89,12 @@ func main() {
 	//	log.Fatal(err)
 	//}
 
-	rest.InitRestAPI()
+	router := mux.NewRouter()
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/authenticate/", rest.AuthenticateHandler)
+	router.HandleFunc("/enroll/", rest.EnrollHandler)
+
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write([]byte("Callum's mum's a big fat slag"))
 		if err != nil {
 			logrus.Panic(err)
@@ -99,14 +102,16 @@ func main() {
 		w.WriteHeader(200)
 	})
 
-	mux.HandleFunc(integrEndpoint, func(w http.ResponseWriter, r *http.Request) {
-		handleIntegrate(mux, r)
+	router.HandleFunc(integrEndpoint, func(w http.ResponseWriter, r *http.Request) {
+		handleIntegrate(router, r)
 	})
 
-	log.Fatal(http.Server{
-		Addr:    ":8080", // todo check this
-		Handler: mux,
-	}.ListenAndServe())
+	//log.Fatal(http.Server{
+	//	Addr:    ":8080", // todo check this
+	//	Handler: mux,
+	//}.ListenAndServe())
+
+	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(router)))
 }
 
 type IntegrationsResponse struct {
@@ -116,7 +121,7 @@ type IntegrationsResponse struct {
 	RefreshTokenExpiresIn string `json:"refresh_token_expires_in"`
 }
 
-func handleIntegrate(mux *http.ServeMux, r *http.Request) {
+func handleIntegrate(mux *mux.Router, r *http.Request) {
 	code := r.URL.Query()["code"]
 
 	v := url.Values{}

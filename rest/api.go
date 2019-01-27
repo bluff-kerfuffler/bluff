@@ -21,11 +21,17 @@ type EnrollRequest struct {
 }
 
 func InitRestAPI() {
-	http.HandleFunc("/authenticate/", authenticateHandler)
+
 
 }
 
-func authenticateHandler(writer http.ResponseWriter, request *http.Request) {
+func AuthenticateHandler(writer http.ResponseWriter, request *http.Request) {
+	enableCors(&writer)
+	if (*request).Method == "OPTIONS" {
+		return
+	}
+
+
 	d := json.NewDecoder(request.Body)
 	var authRequest AuthRequest
 	err := d.Decode(&authRequest)
@@ -40,7 +46,7 @@ func authenticateHandler(writer http.ResponseWriter, request *http.Request) {
 		ApiSecret: viper.GetString("aimbrain_secret"),
 	}
 
-	sessionResponse, err := ab.GenerateSession("device", 0, 0, authRequest.user_id, "system")
+	sessionResponse, err := ab.GenerateSession("device", 1080, 1920, authRequest.user_id, "system")
 
 	if err != nil {
 		fmt.Println("error generating session", err)
@@ -58,10 +64,21 @@ func authenticateHandler(writer http.ResponseWriter, request *http.Request) {
 		//success
 		libbluff.FindAndRemove(authRequest.token)
 		//tell paul's stuff
+
+		writer.WriteHeader(http.StatusOK)
+		return
 	}
+
+	writer.WriteHeader(http.StatusInternalServerError)
 }
 
-func enrollHandler(writer http.ResponseWriter, request *http.Request) {
+func EnrollHandler(writer http.ResponseWriter, request *http.Request) {
+	enableCors(&writer)
+	if (*request).Method == "OPTIONS" {
+		return
+	}
+
+
 	d := json.NewDecoder(request.Body)
 	var enrollRequest EnrollRequest
 	err := d.Decode(&enrollRequest)
@@ -76,7 +93,7 @@ func enrollHandler(writer http.ResponseWriter, request *http.Request) {
 		ApiSecret: viper.GetString("aimbrain_secret"),
 	}
 
-	sessionResponse, err := ab.GenerateSession("device", 0, 0, enrollRequest.user_id, "system")
+	sessionResponse, err := ab.GenerateSession("device", 1080, 1920, enrollRequest.user_id, "system")
 
 	if err != nil {
 		fmt.Println("error generating session", err)
@@ -90,9 +107,20 @@ func enrollHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	fmt.Println("HERE")
+
 	if enrollResponse.ImagesCount > 0 {
 		//success
 		//tell paul's stuff
+
+		writer.WriteHeader(http.StatusOK)
 	}
+
+	writer.WriteHeader(http.StatusInternalServerError)
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
