@@ -3,6 +3,7 @@ package webexAPI
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -39,31 +40,9 @@ func (b Bot) Get(method string, params url.Values) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	return ioutil.ReadAll(resp.Body)
-}
-
-func (b Bot) SpecialPost(method string, roomId string, text string) ([]byte, error) {
-	v := map[string]interface{}{
-		"roomId": roomId,
-		"text":   text,
+	if resp.StatusCode != 200 {
+		fmt.Println("webex get returned: ", resp.StatusCode)
 	}
-	byt, _ := json.Marshal(v)
-
-	req, err := http.NewRequest("POST", apiURL+method, bytes.NewBuffer(byt))
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to build POST request to %v", method)
-	}
-
-	req.Header.Set("Authorization", "Bearer "+b.Token)
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to execute POST request to %v", method)
-	}
-	defer resp.Body.Close()
-
 	return ioutil.ReadAll(resp.Body)
 }
 
@@ -84,5 +63,8 @@ func (b Bot) Post(method string, params map[string]interface{}) ([]byte, error) 
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		fmt.Println("webex post returned: ", resp.StatusCode)
+	}
 	return ioutil.ReadAll(resp.Body)
 }
