@@ -49,7 +49,7 @@ type AuthResponse struct {
 	Liveliness float32
 }
 
-func (ab *AimBrain) Authuser(session string, images ...string) (*AuthResponse, error) {
+func (ab *AimBrain) AuthUser(session string, images ...string) (*AuthResponse, error) {
 	v := map[string]interface{}{
 		"session": session,
 		"faces":   images,

@@ -19,7 +19,7 @@ type IncomingWebhookData struct {
 	Data     json.RawMessage
 }
 
-func handleRawUpdate(data *IncomingWebhookData) {
+func (b Bot) handleRawUpdate(data *IncomingWebhookData) {
 	switch data.Resource {
 	case "messages":
 		var message Message
@@ -28,11 +28,11 @@ func handleRawUpdate(data *IncomingWebhookData) {
 			fmt.Println("failed to unmarshal webhook update json", err)
 			return
 		}
-		handleMessageUpdate(data, &message)
+		b.handleMessageUpdate(data, &message)
 	}
 }
 
-func handleMessageUpdate(data *IncomingWebhookData, message *Message) {
+func (b Bot) handleMessageUpdate(data *IncomingWebhookData, message *Message) {
 	words := strings.Fields(message.Text) // could this also be message.markdown?
 	if len(words) <= 0 {
 		return
@@ -41,10 +41,12 @@ func handleMessageUpdate(data *IncomingWebhookData, message *Message) {
 	// TODO: proper dispatcher handler instead of bs string comparisons
 	switch strings.ToLower(words[0]) {
 	case "/secadd":
-		secureAddition(message.MentionedPeople...)
+		b.secureAddition(data.ActorId, message.MentionedPeople...)
 	}
 }
 
-func secureAddition(people ...string) {
-	// TODO: send this to aimbrains
+func (b Bot) secureAddition(requester string, people ...string) {
+	for _, p := range people {
+		b.SendPrivateMessageMarkdown(p, MentionIdMarkdown(requester, "This person") + " has invited you to join a secure team.\n\nClick here to join: (how do I get this link)")
+	}
 }
