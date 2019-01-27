@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -106,7 +107,6 @@ func handleIntegrate(mux *mux.Router, r *http.Request) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 
-
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		fmt.Println("failed to post for integration linking", err)
@@ -114,8 +114,12 @@ func handleIntegrate(mux *mux.Router, r *http.Request) {
 	}
 	if resp.StatusCode != 200 {
 		fmt.Println("unexpected status code for integration linking: ", resp.StatusCode)
+		d, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println("error is ", d)
 		return
 	}
+	fmt.Println("worked all good")
+
 	defer resp.Body.Close()
 
 	var ir IntegrationsResponse

@@ -26,6 +26,8 @@ var client = &http.Client{
 }
 
 func (b Bot) Get(method string, params url.Values) ([]byte, error) {
+	fmt.Println("GET to", method, params)
+
 	req, err := http.NewRequest("GET", apiURL+method, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to build GET request to %v", method)
@@ -47,6 +49,8 @@ func (b Bot) Get(method string, params url.Values) ([]byte, error) {
 }
 
 func (b Bot) Post(method string, params map[string]interface{}) ([]byte, error) {
+	fmt.Println("POST to", method, params)
+
 	byt, _ := json.Marshal(params)
 	req, err := http.NewRequest("POST", apiURL+method, bytes.NewBuffer(byt))
 	if err != nil {

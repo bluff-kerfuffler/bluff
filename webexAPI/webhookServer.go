@@ -20,6 +20,7 @@ type IncomingWebhookData struct {
 }
 
 func (b Bot) handleRawUpdate(data *IncomingWebhookData) {
+	fmt.Println("incoming update", data.Resource)
 	switch data.Resource {
 	case "messages":
 		var message Message
