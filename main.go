@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bluff/rest"
 	"log"
 	"net/http"
 
@@ -52,8 +53,8 @@ func main() {
 	//}
 
 	//ab := &aimbrain.AimBrain{
-	//	ApiKey:    "29354390-b54f-4fe3-ab92-4558ad2114b5",
-	//	ApiSecret: "Y0j9/DRy3R8c+sI4EyEI6fHYajNpAok9SoRFzj4L+hAD0JNcCkcZ25Ab93bWpi4JMACUpRgQRe2FhctEGFWeVQ==",
+	//	ApiKey:    viper.GetString("aimbrain_api"),
+	//	ApiSecret: viper.GetString("aimbrain_secret"),
 	//}
 	//sess, err := ab.GenerateSession("anoos", 640, 480, "benny", "tool")
 	//if err != nil {
@@ -87,6 +88,8 @@ func main() {
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
+
+	rest.InitRestAPI()
 
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		_, err := writer.Write([]byte("Callum's mum's a big fat slag"))
