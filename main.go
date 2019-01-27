@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -56,7 +55,7 @@ func main() {
 	})
 
 	botRouter.HandleFunc(integrEndpoint, func(w http.ResponseWriter, r *http.Request) {
-		handleIntegrate(botRouter, r)
+		handleIntegrate(botRouter, w, r)
 	})
 
 	go func() {
@@ -88,15 +87,15 @@ type IntegrationsResponse struct {
 	RefreshTokenExpiresIn string `json:"refresh_token_expires_in"`
 }
 
-func handleIntegrate(mux *mux.Router, r *http.Request) {
+func handleIntegrate(mux *mux.Router, w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query()["code"]
 
-	v := url.Values{}
-	v.Set("grant_type", "authorization_code")
-	v.Set("client_id", viper.GetString("client_id"))
-	v.Set("client_secret", viper.GetString("client_secret"))
-	v.Set("code", code[0])
-	v.Set("redirection_uri", redirURL)
+	v := map[string]interface{}{}
+	v["grant_type"] = "authorization_code"
+	v["client_id"] = viper.GetString("client_id")
+	v["client_secret"] = viper.GetString("client_secret")
+	v["code"] = code[0]
+	v["redirection_uri"] = redirURL
 	byt, _ := json.Marshal(v)
 	req, err := http.NewRequest("POST", accTokURL, bytes.NewBuffer(byt))
 	if err != nil {
@@ -141,4 +140,5 @@ func handleIntegrate(mux *mux.Router, r *http.Request) {
 		URL:       viper.GetString("url"), // where we set the hook to
 	}
 	b.AddWebhook(webhook, mux)
+	w.Write([]byte("fuck yes"))
 }
